@@ -274,6 +274,8 @@ def get_argument_parser():
                         default='convert %i %o',
                         help='PDF command (default "%(default)s")')
 
+    parser.add_argument('-d', dest='from_dir')
+
     return parser
 
 ######################################################################
@@ -288,6 +290,12 @@ and this way you can supply files using a wildcard and still have the
 pages ordered correctly.
 
     '''
+
+    if options.from_dir:
+        from os import listdir
+        from os.path import isfile, join
+        files = [f for f in listdir(options.from_dir) if isfile(join(options.from_dir, f))]
+        return files
 
     if not options.sort_numerically:
         return options.filenames
@@ -453,7 +461,7 @@ the background color to pure white.
 
     output_img = Image.fromarray(labels, 'P')
     output_img.putpalette(palette.flatten())
-    output_img.save(output_filename, dpi=dpi)
+    output_img.save(f'output/{output_filename}', dpi=dpi)
 
 ######################################################################
 
@@ -472,17 +480,19 @@ their samples together into one large array.
         print('building global palette...')
 
     for input_filename in filenames:
+        try:
+            img, _ = load(input_filename)
+            if img is None:
+                continue
 
-        img, _ = load(input_filename)
-        if img is None:
+            if not options.quiet:
+                print('  processing {}...'.format(input_filename))
+
+            samples = sample_pixels(img, options)
+            input_filenames.append(input_filename)
+            all_samples.append(samples)
+        except:
             continue
-
-        if not options.quiet:
-            print('  processing {}...'.format(input_filename))
-
-        samples = sample_pixels(img, options)
-        input_filenames.append(input_filename)
-        all_samples.append(samples)
 
     num_inputs = len(input_filenames)
 
@@ -544,38 +554,41 @@ def notescan_main(options):
     do_postprocess = bool(options.postprocess_cmd)
 
     for input_filename in filenames:
+        try:
+            img, dpi = load(input_filename)
+            if img is None:
+                continue
 
-        img, dpi = load(input_filename)
-        if img is None:
+            output_filename = '{}{:04d}.png'.format(
+                options.basename, len(outputs))
+            output_filename = f'{input_filename}{output_filename}'
+
+            if not options.quiet:
+                print('opened', input_filename)
+
+            if not do_global:
+                samples = sample_pixels(img, options)
+                palette = get_palette(samples, options)
+
+            labels = apply_palette(img, palette, options)
+
+            save(output_filename, labels, palette, dpi, options)
+
+            if do_postprocess:
+                post_filename = postprocess(output_filename, options)
+                if post_filename:
+                    output_filename = post_filename
+                else:
+                    do_postprocess = False
+
+            outputs.append(output_filename)
+
+            if not options.quiet:
+                print('  done\n')
+        except:
             continue
 
-        output_filename = '{}{:04d}.png'.format(
-            options.basename, len(outputs))
-
-        if not options.quiet:
-            print('opened', input_filename)
-
-        if not do_global:
-            samples = sample_pixels(img, options)
-            palette = get_palette(samples, options)
-
-        labels = apply_palette(img, palette, options)
-
-        save(output_filename, labels, palette, dpi, options)
-
-        if do_postprocess:
-            post_filename = postprocess(output_filename, options)
-            if post_filename:
-                output_filename = post_filename
-            else:
-                do_postprocess = False
-
-        outputs.append(output_filename)
-
-        if not options.quiet:
-            print('  done\n')
-
-    emit_pdf(outputs, options)
+    #emit_pdf(outputs, options)
 
 ######################################################################
 
