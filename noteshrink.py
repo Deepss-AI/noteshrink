@@ -198,7 +198,8 @@ def get_argument_parser():
 
     show_default = ' (default %(default)s)'
 
-    parser.add_argument('filenames', metavar='IMAGE', nargs='+',
+    parser.add_argument('-f', dest='filenames', metavar='IMAGE', nargs='+',
+                        default='',
                         help='files to convert')
 
     parser.add_argument('-q', dest='quiet', action='store_true',
