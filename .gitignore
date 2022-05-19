@@ -5,3 +5,5 @@ nogit/*
 week*
 output.pdf
 page*png
+.vscode
+output

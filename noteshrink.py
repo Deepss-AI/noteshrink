@@ -9,6 +9,8 @@ bleedthrough, etc.
 # pylint: disable=E1101
 
 from __future__ import print_function
+from datetime import date, datetime
+from pathlib import Path
 
 import sys
 import os
@@ -295,7 +297,7 @@ pages ordered correctly.
     if options.from_dir:
         from os import listdir
         from os.path import isfile, join
-        files = [f for f in listdir(options.from_dir) if isfile(join(options.from_dir, f))]
+        files = [join(options.from_dir, f) for f in listdir(options.from_dir) if isfile(join(options.from_dir, f))]
         return files
 
     if not options.sort_numerically:
@@ -325,6 +327,8 @@ returns the image DPI in x and y as a tuple.'''
     try:
         pil_img = Image.open(input_filename)
     except IOError:
+        type, value, traceback = sys.exc_info()
+        print('Error opening %s: %s' % (value.filename, value.strerror))
         sys.stderr.write('warning: error opening {}\n'.format(
             input_filename))
         return None, None
@@ -562,7 +566,7 @@ def notescan_main(options):
 
             output_filename = '{}{:04d}.png'.format(
                 options.basename, len(outputs))
-            output_filename = f'{input_filename}{output_filename}'
+            output_filename = f'{Path(input_filename).stem}_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}_{output_filename}'
 
             if not options.quiet:
                 print('opened', input_filename)
