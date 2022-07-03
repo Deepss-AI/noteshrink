@@ -32,3 +32,11 @@ Packages are available for:
 *Note:* Projects listed here aren't necessarily tested or endorsed by me -- use with care!
 
   - [Web-based (Django) front-end](https://github.com/delneg/noteshrinker-django)
+
+
+# DEEPSS AI USAGE:
+
+
+```
+python .\noteshrink.py -w -v 10 -d 'C:\private\deepss-ai\noteshrink\input'
+```

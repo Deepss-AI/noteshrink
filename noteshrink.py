@@ -538,7 +538,7 @@ def notescan_main(options):
 
             output_filename = '{}{:04d}.png'.format(
                 options.basename, len(outputs))
-            output_filename = f'{Path(input_filename).stem}_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}_{output_filename}'
+            output_filename = f'{Path(input_filename).stem}.png'#_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}_{output_filename}'
 
             if not options.quiet:
                 print('opened', input_filename)
@@ -563,6 +563,7 @@ def notescan_main(options):
             if not options.quiet:
                 print('  done\n')
         except:
+            print("Oops!", sys.exc_info()[0], "occurred.")
             continue
 
 
