@@ -17,11 +17,13 @@ import os
 import re
 import subprocess
 import shlex
+import cv2
 
 from argparse import ArgumentParser
 
 import numpy as np
 from PIL import Image
+from PIL import ImageOps
 from scipy.cluster.vq import kmeans, vq
 
 ######################################################################
@@ -207,7 +209,15 @@ def get_argument_parser():
     parser.add_argument('-q', dest='quiet', action='store_true',
                         default=False,
                         help='reduce program output')
-
+    
+    parser.add_argument('-i', dest='invert', action='store_true',
+                        default=False, 
+                        help='invert colors')
+    
+    parser.add_argument('-B', dest='blur', action='store_true',
+                        default=False,
+                        help='use blur')
+    
     parser.add_argument('-b', dest='basename', metavar='BASENAME',
                         default='page',
                         help='output PNG filename base' + show_default)
@@ -466,7 +476,42 @@ the background color to pure white.
 
     output_img = Image.fromarray(labels, 'P')
     output_img.putpalette(palette.flatten())
-    output_img.save(f'output/{output_filename}', dpi=dpi)
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        output_img.save(f'{tmpdirname}/{output_filename}', dpi=dpi)
+        output_img = cv2.imread(f'{tmpdirname}/{output_filename}')
+
+    output_img = cv2.cvtColor(output_img, cv2.COLOR_RGB2GRAY)
+    _, output_img = cv2.threshold(output_img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    
+    if options.invert:
+        output_img = cv2.bitwise_not(output_img)
+    if options.blur:
+        output_img = cv2.GaussianBlur(output_img,(5,5),0)
+    cv2.imwrite(f'output/{output_filename}', output_img)
+
+######################################################################
+
+def blur(image):
+    blur = cv2.GaussianBlur(image,(5,5),0)
+    return blur
+    
+######################################################################
+
+def invert(image):
+    # result = 1 - np.asarray(image)
+    result = cv2.bitwise_not(image)
+    return result
+    # if image.mode == 'RGBA':
+    #     r,g,b,a = image.split()
+    #     rgb_image = Image.merge('RGB', (r,g,b))
+    #     inverted_image = ImageOps.invert(rgb_image)
+    #     r2,g2,b2 = inverted_image.split()
+    #     final_transparent_image = Image.merge('RGBA', (r2,g2,b2,a))
+    #     return final_transparent_image
+    # else:
+    #     inverted_image = ImageOps.invert(image)
+    #     return inverted_image
 
 ######################################################################
 
