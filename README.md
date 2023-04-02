@@ -39,4 +39,5 @@ Packages are available for:
 
 ```
 python .\noteshrink.py -w -v 10 -d 'C:\private\deepss-ai\noteshrink\input'
+python .\noteshrink.py -w -v 10 -B -i -d 'G:\Projects\Deepss_AI\machine_learning\dataset_converter\output'
 ```
