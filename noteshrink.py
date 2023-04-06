@@ -255,7 +255,7 @@ def get_argument_parser():
                         default=True, help='do not saturate colors')
 
     parser.add_argument('-K', dest='sort_numerically',
-                        action='store_false', default=True,
+                        action='store_false', default=False,
                         help='keep filenames ordered as specified; '
                         'use if you *really* want IMG_10.png to '
                         'precede IMG_2.png')
